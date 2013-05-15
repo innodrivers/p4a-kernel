@@ -2259,6 +2259,16 @@ config FB_JZ4740
 	help
 	  Framebuffer support for the JZ4740 SoC.
 
+config FB_SH1106
+	tristate "SH1106 OLED framebuffer support"
+	depends on FB && I2C
+	select FB_CFB_FILLRECT
+	select FB_CFB_COPYAREA
+	select FB_CFB_IMAGEBLIT
+	help
+	  Frame buffer driver for the SH1106 132x64 Dot Matrix OLED.
+
+
 source "drivers/video/omap/Kconfig"
 source "drivers/video/omap2/Kconfig"
 

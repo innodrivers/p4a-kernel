@@ -10,10 +10,10 @@ comment "Enable Host or Gadget support to see Inventra options"
 config USB_MUSB_HDRC
 	depends on (USB || USB_GADGET)
 	depends on (ARM || (BF54x && !BF544) || (BF52x && !BF522 && !BF523))
-	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM || BLACKFIN)
+	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM || BLACKFIN || ARCH_P4A)
 	select TWL4030_USB if MACH_OMAP_3430SDP
 	select USB_OTG_UTILS
-	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI, ...)'
+	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI, Innofidei ...)'
 	help
 	  Say Y here if your system has a dual role high speed USB
 	  controller based on the Mentor Graphics silicon IP.  Then
@@ -41,6 +41,7 @@ config USB_MUSB_SOC
 	default y if ARCH_OMAP4
 	default y if (BF54x && !BF544)
 	default y if (BF52x && !BF522 && !BF523)
+	default y if ARCH_P4A
 
 comment "DaVinci 35x and 644x USB support"
 	depends on USB_MUSB_HDRC && ARCH_DAVINCI_DMx
@@ -59,6 +60,9 @@ comment "OMAP 44xx high speed USB support"
 
 comment "Blackfin high speed USB Support"
 	depends on USB_MUSB_HDRC && ((BF54x && !BF544) || (BF52x && !BF522 && !BF523))
+
+comment "P4A hisgh speed USB support"
+	depends on USB_MUSB_HDRC && ARCH_P4A
 
 config USB_MUSB_AM35X
 	bool
@@ -171,7 +175,7 @@ config MUSB_PIO_ONLY
 config USB_INVENTRA_DMA
 	bool
 	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
-	default ARCH_OMAP2430 || ARCH_OMAP3 || BLACKFIN || ARCH_OMAP4
+	default ARCH_OMAP2430 || ARCH_OMAP3 || BLACKFIN || ARCH_OMAP4 || ARCH_P4A
 	help
 	  Enable DMA transfers using Mentor's engine.
 

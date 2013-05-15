@@ -199,6 +199,9 @@
 /* TI OMAP-UART */
 #define PORT_OMAP	96
 
+/* Innofidei UART */
+#define PORT_P4A	97
+
 #ifdef __KERNEL__
 
 #include <linux/compiler.h>

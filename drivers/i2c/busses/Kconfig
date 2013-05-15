@@ -523,6 +523,13 @@ config I2C_PNX
 	  This driver can also be built as a module.  If so, the module
 	  will be called i2c-pnx.
 
+config I2C_P4A
+	tristate "P4A I2C adapter"
+	depends on ARCH_P4A
+	help
+	  Say Y here to include support for I2C controller in Innofidei
+	  P4A Chips.
+
 config I2C_PXA
 	tristate "Intel PXA2XX I2C adapter"
 	depends on ARCH_PXA || ARCH_MMP

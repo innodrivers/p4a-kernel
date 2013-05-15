@@ -354,6 +354,13 @@ config RTC_DRV_RX8025
 	  This driver can also be built as a module. If so, the module
 	  will be called rtc-rx8025.
 
+config RTC_DRV_HYM8563
+	tristate "HYM8563 RTC chip"
+	depends on I2C
+	help
+	  If you say yes here you get support for the HYM8563 RTC chips.
+
+
 endif # I2C
 
 comment "SPI RTC drivers"

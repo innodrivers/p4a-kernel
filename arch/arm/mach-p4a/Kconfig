@@ -1,0 +1,69 @@
+if ARCH_P4A
+
+config P4A_CPU1
+	bool
+	depends on !MMU
+	select CPU_V7
+	help
+	  Cortex-R4 Core
+
+config P4A_CPU2
+	bool
+	depends on MMU
+	select CPU_V7
+	help
+	  Cortex-A8 Core
+
+config P4A_FPGA
+	bool "P4A FPGA"
+	help
+	  If you are use on P4A FPGA board, please select this item.
+
+menu "P4A FPGA Board"
+	depends on P4A_FPGA
+
+config MACH_P4AFPGA
+	bool "P4a FPGA board"
+	select P4A_CPU2
+endmenu
+
+menu "P4A Board Selection"
+	depends on !P4A_FPGA
+
+config MACH_P4ABU
+    bool "P4A Bring-up board"
+	select P4A_CPU2
+
+endmenu
+
+		
+config P4A_MAILBOX
+	bool "P4A Mailbox Communication during dual CPU"
+	select GENERIC_ALLOCATOR
+	help
+	  Enable support for P4A mailbox
+
+config MICPROTO_UNCACHED_MEM_PHYS
+	hex 'mailbox internal uncached memory address' if P4A_MAILBOX
+	default 0x47800000
+
+config MICPROTO_UNCACHED_MEM_SIZE
+	hex 'mailbox internal uncached memory size' if P4A_MAILBOX
+	default 0x800000
+
+choice
+	prompt "Low-level debug console UART"
+	default P4A_LL_DEBUG_UART2
+
+config P4A_LL_DEBUG_UART1
+	bool "UART1"
+
+config P4A_LL_DEBUG_UART2
+	bool "UART2"
+
+config P4A_LL_DEBUG_UART4W
+	bool "UART 4Wires"
+
+endchoice
+
+endif

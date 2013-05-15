@@ -365,7 +365,7 @@ void netpoll_send_udp(struct netpoll *np, const char *msg, int len)
 		return;
 
 	skb_copy_to_linear_data(skb, msg, len);
-	skb->len += len;
+	skb_put(skb, len);
 
 	skb_push(skb, sizeof(*udph));
 	skb_reset_transport_header(skb);

@@ -72,3 +72,24 @@ config W90P910_ETH
 	help
 	  Say Y here if you want to use built-in Ethernet ports
 	  on w90p910 processor.
+
+config P4A_ETHER
+	tristate "P4A Ethernet support"
+	depends on ARM && ARCH_P4A
+	select MII
+	help
+	  If you wish to compile a kernel for the innofidei P4A and enable
+	  ethernet support, then you should always answer Y to this.
+
+config P4A_ETHER_NAPI
+	bool "Enable P4A ethernet NAPI"
+	depends on P4A_ETHER
+	help
+	  Enable P4A ethernet driver works on NAPI mode.
+
+config P4A_MAILBOX_ETHER
+	tristate "P4A Mailbox Ethernet support"
+	depends on ARM && ARCH_P4A && P4A_MAILBOX
+	help
+	  This is a driver for virtual ethernet based on mailbox for innofidei P4A.
+

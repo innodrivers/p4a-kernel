@@ -140,6 +140,16 @@ config MMC_SDHCI_ESDHC_IMX
 
 	  If unsure, say N.
 
+config MMC_SDHCI_P4A
+	tristate "SDHCI support on P4A"
+	depends on ARCH_P4A
+	select MMC_SDHCI
+	select MMC_SDHCI_IO_ACCESSORS
+	help
+	  This selects the SDHCI support for Innofidei P4A SOC devices.
+
+	  If unsure, say N.
+
 config MMC_SDHCI_S3C
 	tristate "SDHCI support on Samsung S3C SoC"
 	depends on MMC_SDHCI && PLAT_SAMSUNG

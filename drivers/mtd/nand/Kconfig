@@ -532,4 +532,16 @@ config MTD_NAND_FSMC
 	  Enables support for NAND Flash chips on the ST Microelectronics
 	  Flexible Static Memory Controller (FSMC)
 
+config MTD_NAND_P4A
+	tristate "P4A Nand Controller Driver"
+	depends on ARCH_P4A
+	help
+	  This is a nand controller driver for Innofidei P4A platform.
+
+config MTD_MAILBOX_NAND_P4A
+	tristate "Mailbox based Nand on P4A"
+	depends on ARCH_P4A && P4A_MAILBOX
+	help
+	  This is a driver for mailbox based nand on Innofidei P4A platform.
+
 endif # MTD_NAND

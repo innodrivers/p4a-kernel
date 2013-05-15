@@ -2,6 +2,10 @@
 # Makefile for the WatchDog device drivers.
 #
 
+# The WatchDog Timer Driver Core.
+watchdog-objs	+= watchdog_core.o watchdog_dev.o
+obj-$(CONFIG_WATCHDOG_CORE)	+= watchdog.o
+
 # Only one watchdog can succeed. We probe the ISA/PCI/USB based
 # watchdog-cards first, then the architecture specific watchdog
 # drivers and then the architecture independant "softdog" driver.
@@ -49,6 +53,7 @@ obj-$(CONFIG_NUC900_WATCHDOG) += nuc900_wdt.o
 obj-$(CONFIG_ADX_WATCHDOG) += adx_wdt.o
 obj-$(CONFIG_TS72XX_WATCHDOG) += ts72xx_wdt.o
 obj-$(CONFIG_IMX2_WDT) += imx2_wdt.o
+obj-$(CONFIG_P4A_WATCHDOG) += p4a_wdt.o
 
 # AVR32 Architecture
 obj-$(CONFIG_AT32AP700X_WDT) += at32ap700x_wdt.o
