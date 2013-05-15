@@ -311,7 +311,7 @@ static int sh1106fb_ioctl(struct fb_info *info, unsigned int cmd,
 	switch (cmd) {
 
 	case SH1106FBIO_UPDATE_DRAWAREA:
-		if (copy_from_user(&(sh1106->update_area), (void *)arg, sizeof(struct sh1106_drawarea))) {
+		if (copy_from_user(&(sh1106->update_area), (u32 __user *)arg, sizeof(struct sh1106_drawarea))) {
 			return -EFAULT;
 		}
 
@@ -566,7 +566,8 @@ static int __devinit sh1106fb_probe(struct platform_device *pdev)
 	}
 
 	sh1106 = (struct sh1106fb_info *)info->par;
-
+	sh1106->info = info;
+	
 	/* init the led param */
 	sh1106->bpp = 1;
 	info->var.xres = LED_WIDTH;			//_ALIGN_UP(LED_WIDTH, 8);

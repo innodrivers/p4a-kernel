@@ -101,21 +101,6 @@ struct p4a_i2c {
 
 /*--------------------------------------------------------------*/
 
-#ifdef P4A_I2C_DEBUG
-static int  p4a_i2c_dump_reg(struct p4a_i2c *i2c_adap)
-{
-	printk("IIC_CTRL       : 0x%x\n", p4a_i2c_read_reg(i2c_adap,  IIC_CTRL));
-	printk("IIC_CMD        : 0x%x\n", p4a_i2c_read_reg(i2c_adap, IIC_CMD));
-	printk("IIC_PRESCALE   : 0x%x\n", p4a_i2c_read_reg(i2c_adap, IIC_PRESCALE));
-	printk("IIC_STATUS     : 0x%x\n", p4a_i2c_read_reg(i2c_adap, IIC_STATUS));
-	printk("IIC_ARBLOS     : 0x%x\n", p4a_i2c_read_reg(i2c_adap, IIC_ARBLOS));
-
-	return 0;
-}
-#else
-static inline int  p4a_i2c_dump_reg(struct p4a_i2c *i2c_adap) { return 0;}
-#endif
-
 
 static inline void p4a_i2c_write_reg(struct p4a_i2c *i2c_adap, int reg, u32 val)
 {
@@ -128,6 +113,22 @@ static inline u32 p4a_i2c_read_reg(struct p4a_i2c *i2c_adap, int reg)
 }
 
 /*-----------------------------------------------------------------*/
+
+#ifdef P4A_I2C_DEBUG
+static int  p4a_i2c_dump_reg(struct p4a_i2c *i2c_adap)
+{
+	printk("------------------\n");
+	printk("IIC_CTRL       : 0x%x\n", p4a_i2c_read_reg(i2c_adap,  IIC_CTRL));
+	printk("IIC_CMD        : 0x%x\n", p4a_i2c_read_reg(i2c_adap, IIC_CMD));
+	printk("IIC_PRESCALE   : 0x%x\n", p4a_i2c_read_reg(i2c_adap, IIC_PRESCALE));
+	printk("IIC_STATUS     : 0x%x\n", p4a_i2c_read_reg(i2c_adap, IIC_STATUS));
+	printk("IIC_ARBLOS     : 0x%x\n", p4a_i2c_read_reg(i2c_adap, IIC_ARBLOS));
+	printk("------------------\n");
+	return 0;
+}
+#else
+static inline int  p4a_i2c_dump_reg(struct p4a_i2c *i2c_adap) { return 0;}
+#endif
 /*
  * set i2c clk.
  */
@@ -411,6 +412,12 @@ static int p4a_i2c_in_state_addr(struct p4a_i2c *i2c_adap, unsigned int iicstat)
 
 	cmd = 0;
 
+	if (unlikely(NULL == i2c_adap->i2c_op_req)) {
+		dev_err(i2c_adap->dev, "%s:%d i2c msg req is NULL\n", __func__, __LINE__);
+		p4a_i2c_wakeup_waitqueue(i2c_adap, -ENOMEM);
+		return -ENOMEM;
+	}
+
 	/* ack was not received... */
 	if ((!(iicstat & IICSTA_ACK)) &&
 	        (!(i2c_adap->i2c_op_req->flags & I2C_M_IGNORE_NAK))) {
@@ -469,6 +476,11 @@ static int p4a_i2c_in_state_read(struct p4a_i2c *i2c_adap, unsigned int iicstat)
 	 * going to do any more read/write
 	 */
 
+	if (unlikely(NULL == i2c_adap->i2c_op_req)) {
+		dev_err(i2c_adap->dev, "%s:%d i2c msg req is NULL\n", __func__, __LINE__);
+		p4a_i2c_wakeup_waitqueue(i2c_adap, -ENOMEM);
+		return -ENOMEM;
+	}
 	byte = readb(i2c_adap->base + IIC_RXR);
 	i2c_adap->i2c_op_req->buf[i2c_adap->buf_idx] = byte;
 	i2c_adap->buf_idx++;
@@ -501,6 +513,14 @@ static int p4a_i2c_in_state_write(struct p4a_i2c *i2c_adap, unsigned int iicstat
 	/* we are writing data to the device... check for the
 	 * end of the message, and if so, work out what to do
 	*/
+	
+
+	if (unlikely(NULL == i2c_adap->i2c_op_req)) {
+		dev_err(i2c_adap->dev, "%s:%d i2c msg req is NULL\n", __func__, __LINE__);
+		p4a_i2c_wakeup_waitqueue(i2c_adap, -ENOMEM);
+		return -ENOMEM;
+	}
+
 
 	if (!(i2c_adap->i2c_op_req->flags & I2C_M_IGNORE_NAK)) {
 		if (!(iicstat & IICSTA_ACK)) {
@@ -537,15 +557,10 @@ static irqreturn_t p4a_i2c_isr(int this_irq, void *dev_id)
 
 	status = p4a_i2c_read_reg(i2c_adap, IIC_STATUS);
 
-	if (unlikely(NULL == i2c_adap->i2c_op_req)) {
-		dev_err(i2c_adap->dev, "%s:%d i2c msg req is NULL\n", __func__, __LINE__);
-		p4a_i2c_wakeup_waitqueue(i2c_adap, -ENOMEM);
-		return IRQ_HANDLED;
-	}
-
 	if (status & IICSTA_ARBLOST) {
 		dev_err(i2c_adap->dev, "%s %d   lost arbi !!!! i2c_adap->state=0x%x ,flags=0x%x\r\n",
-		        __func__, __LINE__, i2c_adap->state, i2c_adap->i2c_op_req->flags);
+		        __func__, __LINE__, i2c_adap->state, (i2c_adap->i2c_op_req != NULL) ? 
+			(i2c_adap->i2c_op_req->flags) : 0xdeadbeef);
 		p4a_i2c_wakeup_waitqueue(i2c_adap, -EIO);
 		return IRQ_HANDLED;
 	}
