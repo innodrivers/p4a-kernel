@@ -707,7 +707,8 @@ static struct clk clk_p4timer = {
 static struct clk clk_wdt= {
 	.name	= "watchdog",
 	.parent	= &clk_peri_ref,
-	.calcrate	= p4a_followparent_calcrate,
+	.clkdiv	= &timer_clkdiv,		// wdt dividor same as timer
+	.calcrate	= p4a_clkdiv_calcrate,
 };
 
 static struct clk clk_mbox = {
