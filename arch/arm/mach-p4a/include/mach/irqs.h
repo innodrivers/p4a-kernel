@@ -55,7 +55,21 @@
 
 #define NR_AIC_IRQS		32
 
-#define IRQ_PERI(x)		( AIC_IRQ(0) + NR_AIC_IRQS + (x) )
+
+
+#define IRQ_TIMER_BASE		(AIC_IRQ(0) + NR_AIC_IRQS)
+
+#define IRQ_TIMER1M0		(IRQ_TIMER_BASE + 0)
+#define IRQ_TIMER1M1		(IRQ_TIMER_BASE + 1)
+#define IRQ_TIMER2M0		(IRQ_TIMER_BASE + 2)
+#define IRQ_TIMER2M1		(IRQ_TIMER_BASE + 3)
+#define IRQ_WDT				(IRQ_TIMER_BASE + 4)
+
+#define NR_IRQS_TIMER		5
+
+
+
+#define IRQ_PERI(x)		( IRQ_TIMER_BASE + NR_IRQS_TIMER)
 #define IRQ_PERI_BASE		IRQ_PERI(0)
 
 #define IRQ_PERI_UART1_RX		IRQ_PERI(0)
@@ -85,17 +99,21 @@
 
 #define NR_IRQS_PERI		24
 
+
+
+/* GPIO IRQs */
 #define IRQ_GPIO_BASE		(IRQ_PERI(0) + NR_IRQS_PERI)
 #define NR_GPIO_IRQS		192
 
 #define GPIO_TO_IRQ(x)		(IRQ_GPIO_BASE + (x))
 #define IRQ_TO_GPIO(i)		((i) - IRQ_GPIO_BASE)
 
+
+
 /* 
  * Figure out the MAX IRQ number
- *
  */
-#define NR_IRQS				(NR_AIC_IRQS + NR_IRQS_PERI + NR_GPIO_IRQS)
+#define NR_IRQS				(NR_AIC_IRQS + NR_IRQS_TIMER + NR_IRQS_PERI + NR_GPIO_IRQS)
 
 #endif	//__ASM_ARCH_IRQS_H
 

@@ -42,9 +42,91 @@
 #define COMM_INT_ENABLE_REG		PERI_REG(0x28<<2)
 #endif
 
+#define TIMER_INT_STATUS_REG	PERI_REG(0x20<<2)
+#define TIMER_INT_CLEAR_REG		PERI_REG(0x21<<2)
+#ifdef CONFIG_P4A_CPU1
+#define TIMER_INT_ENABLE_REG	PERI_REG(0x22<<2)
+#elif defined(CONFIG_P4A_CPU2)
+#define TIMER_INT_ENABLE_REG	PERI_REG(0x27<<2)
+#endif
+
+
+/*
+ * p4a timer irq
+ */
+static void p4a_timer_demux_handler(unsigned int irq, struct irq_desc* desc)
+{
+	unsigned int status;
+
+	status = readl(TIMER_INT_STATUS_REG) & readl(TIMER_INT_ENABLE_REG);
+
+	if(status) {
+		irq = IRQ_TIMER_BASE;
+		desc = irq_desc + irq;
+		do {
+			if(status & 1)
+			  desc->handle_irq(irq, desc);
+			irq++;
+			desc++;
+			status >>= 1;
+		} while(status);
+	}
+}
+
+static void p4a_timer_ack_irq(unsigned int irq)
+{
+	unsigned int status;
+
+	status = readl(TIMER_INT_CLEAR_REG);
+	status |= (1 << (irq - IRQ_TIMER_BASE));
+	writel(status, TIMER_INT_CLEAR_REG);
+}
+
+static void p4a_timer_mask_irq(unsigned int irq)
+{
+	unsigned int status;
+
+	status = readl(TIMER_INT_ENABLE_REG);
+	status &= ~(1 << (irq - IRQ_TIMER_BASE));
+	writel(status, TIMER_INT_ENABLE_REG);
+}
+
+static void p4a_timer_umask_irq(unsigned int irq)
+{
+	unsigned int status;
+
+	status = readl(TIMER_INT_ENABLE_REG);
+	status |= (1 << (irq - IRQ_TIMER_BASE));
+	writel(status, TIMER_INT_ENABLE_REG);
+}
+
+static struct irq_chip p4a_timer_chip = {
+	.name = "TIMER",
+	.ack = p4a_timer_ack_irq,
+	.mask = p4a_timer_mask_irq,
+	.unmask = p4a_timer_umask_irq,
+};
+
+static void __init p4a_timer_irq_setup(void)
+{
+	int irq;
+
+	writel(0, TIMER_INT_ENABLE_REG); /* diable all timer interrupts */
+#ifdef CONFIG_P4A_CPU1
+	writel(~0x0, TIMER_INT_CLEAR_REG); /* clear status on all timers */
+#endif
+
+	for (irq = IRQ_TIMER_BASE; irq < (IRQ_TIMER_BASE + NR_IRQS_TIMER); irq++) {
+		set_irq_chip(irq, &p4a_timer_chip);
+		set_irq_handler(irq, handle_level_irq);
+		set_irq_flags(irq, IRQF_VALID);
+	}
+
+	set_irq_chained_handler(IRQ_TIMER, p4a_timer_demux_handler);
+}
+
 /*
  * p4a peripheral common irq
- *
  */
 static void p4a_peri_comm_demux_handler(unsigned int irq, struct irq_desc *desc)
 {
@@ -119,7 +201,7 @@ static struct irq_chip p4a_peri_comm_chip = {
 };
 
 
-static void __init p4a_peri_comm_setup(void)
+static void __init p4a_peri_comm_irq_setup(void)
 {
 	int i;
 	unsigned int irq;
@@ -198,7 +280,7 @@ static void aic_reset(void __iomem* aic_base)
 /*
  * Initialize the AIC interrupt controller.
  */
-static void p4a_aic_init(void __iomem* aic_base, unsigned int irq_start, unsigned int num_irqs)
+static void __init p4a_aic_init(void __iomem* aic_base, unsigned int irq_start, unsigned int num_irqs)
 {
 	unsigned int i;
 	unsigned long aiier = 0;
@@ -227,5 +309,8 @@ void __init p4a_irq_init(void)
 	p4a_aic_init(P4A_AIC_BASE, AIC_IRQ(0), NR_AIC_IRQS);
 
 	/* setup peripheral common irq */
-	p4a_peri_comm_setup();
+	p4a_peri_comm_irq_setup();
+
+	/* setup timer irq */
+	p4a_timer_irq_setup();
 }
