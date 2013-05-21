@@ -29,17 +29,9 @@
 
 #define MICP_VER		"1.0.1"
 
-#ifndef CONFIG_MICPROTO_UNCACHED_MEM_PHYS
-#error "no define CONFIG_MICPROTO_UNCACHED_MEM_PHYS"
-#endif
-
-#ifndef CONFIG_MICPROTO_UNCACHED_MEM_SIZE
-#error "no define CONFIG_MICPROTO_UNCACHED_MEM_SIZE"
-#endif
-
 /*
 
-     |<---CONFIG_MICPROTO_UNCACHED_MEM_SIZE--->|
+     |<--- mreserved_memsize--->|
 
               CPU1                  CPU2
 -----|--------------------|--------------------|
@@ -48,7 +40,7 @@
            ^            ^         ^          ^
        extra pool  mreqb pool  extra pool  mreqb pool
      ^
-     CONFIG_MICPROTO_UNCACHED_MEM_PHYS
+     mreserved_memphys
 
 */
 
@@ -64,9 +56,32 @@
 static struct p4a_mbox *mbox;
 static int micproto_ready;
 
-static phys_addr_t mreserved_memphys;
-static size_t	mreserved_memsize;
+static phys_addr_t mreserved_memphys = MICPROTO_UNCACHED_MEM_PHYS;
+static size_t	mreserved_memsize = MICPROTO_UNCACHED_MEM_SIZE;
 static void __iomem* mreserved_membase;
+
+/*
+ * Pick out the reserved memory size.  We look for mem=size@start,
+ * where start and size are "size[KkMm]"
+ */
+static int __init early_p4a_mreserved_mem(char *p)
+{
+	unsigned long size, start;
+	char *endp;
+
+	start = MICPROTO_UNCACHED_MEM_PHYS;
+
+	size = memparse(p, &endp);
+	if (*endp == '@')
+		start = memparse(endp + 1, NULL);
+
+	mreserved_memphys = start;
+	mreserved_memsize = size;
+
+	return 0;
+}
+
+early_param("mbox_mem", early_p4a_mreserved_mem);
 
 /* change reserved memory address from physical to virtual */
 static inline void * mreserved_mem_phys_to_virt(phys_addr_t paddr)
@@ -800,12 +815,16 @@ static int micproto_mreqb_buffer_init(void)
 	size_t mreqb_pool_size, extra_data_pool_size;
 	int ret;
 
-	mreserved_memphys = CONFIG_MICPROTO_UNCACHED_MEM_PHYS;
-	mreserved_memsize = CONFIG_MICPROTO_UNCACHED_MEM_SIZE;
+	if (mreserved_memphys == 0) {
+		printk(KERN_ERROR "mailbox reserved memory region not specified!\n");
+		return -ENOMEM;
+	}
+
+	printk(KERN_INFO "mailbox reserved memory :  [%x, %x)\n", mreserved_memphys, mreserved_memphys + mreserved_memsize);
+
 	mreserved_membase = ioremap(mreserved_memphys, mreserved_memsize);
 	if (mreserved_membase == NULL)
 		return -ENOMEM;
-	printk("micproto : mreserved_memphys %x mreserved_memsize %x\n", mreserved_memphys, mreserved_memsize);
 
 	/* the bottom half memory for our used */
 	extra_data_pool_start = mreserved_memphys + (mreserved_memsize >> 1);
