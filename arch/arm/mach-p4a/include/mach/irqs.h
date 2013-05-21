@@ -69,7 +69,7 @@
 
 
 
-#define IRQ_PERI(x)		( IRQ_TIMER_BASE + NR_IRQS_TIMER)
+#define IRQ_PERI(x)		( IRQ_TIMER_BASE + NR_IRQS_TIMER + (x))
 #define IRQ_PERI_BASE		IRQ_PERI(0)
 
 #define IRQ_PERI_UART1_RX		IRQ_PERI(0)
