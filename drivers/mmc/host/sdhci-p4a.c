@@ -26,12 +26,18 @@
 struct sdhci_p4a_host {
 	struct sdhci_host *host;
 	struct clk *clk;
+	struct clk *hclk;
 	struct resource *res;
 };
 
 static unsigned int sdhci_p4a_get_max_clk(struct sdhci_host *host)
 {
-	return 102000000;		//TODO
+	struct sdhci_p4a_host *p4a = sdhci_priv(host);
+	unsigned int rate;
+
+	rate = clk_get_rate(p4a->hclk);
+
+	return rate;
 }
 
 static struct sdhci_ops p4a_sdhci_ops = {
@@ -72,9 +78,17 @@ static int __devinit sdhci_p4a_probe(struct platform_device *pdev)
 	p4a = sdhci_priv(host);
 	p4a->host = host;
 
-	p4a->clk = clk_get(dev, "SDCLK");
+	p4a->hclk = clk_get(dev, "SD_HCLK");
+	if (IS_ERR(p4a->hclk)) {
+		dev_err(dev, "failed to get SD_HCLK!\n");
+		ret = PTR_ERR(p4a->hclk);
+		goto err_hclk;
+	}
+	clk_enable(p4a->hclk);
+
+	p4a->clk = clk_get(dev, "SD_CLK");
 	if (IS_ERR(p4a->clk)) {
-		dev_err(dev, "failed to get clock!\n");
+		dev_err(dev, "failed to get SD_CLK!\n");
 		ret = PTR_ERR(p4a->clk);
 		goto err_clk;
 	}
@@ -123,8 +137,12 @@ err_add_host:
 err_ioremap:
 	release_mem_region(iomem->start, resource_size(iomem));
 err_request:
+	clk_disable(p4a->clk);
 	clk_put(p4a->clk);
 err_clk:
+	clk_disable(p4a->hclk);
+	clk_put(p4a->hclk);
+err_hclk:
 	sdhci_free_host(host);
 err:
 	return ret;
@@ -146,7 +164,11 @@ static int __devexit sdhci_p4a_remove(struct platform_device *pdev)
 		iounmap(host->ioaddr);
 		release_mem_region(p4a->res->start, resource_size(p4a->res));
 
+		clk_disable(p4a->clk);
 		clk_put(p4a->clk);
+
+		clk_disable(p4a->hclk);
+		clk_put(p4a->hclk);
 
 		sdhci_free_host(host);
 		platform_set_drvdata(pdev, NULL);

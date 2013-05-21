@@ -546,12 +546,10 @@ static struct clk clk_sdiom1_hclk = {
 	.name	= "sdiom1_hclk",
 	.parent	= &clk_hclk_div_clk_1,
 	.calcrate	= p4a_followparent_calcrate,
-};
-
-static struct clk clk_sdiom2_hclk = {
-	.name	= "sdiom2_hclk",
-	.parent	= &clk_hclk_div_clk_1,
-	.calcrate	= p4a_followparent_calcrate,
+	.enable = p4a_set_clken_and_softreset,
+	.disable = p4a_clear_clken_and_softreset,
+	.clken_reg = GBL_CFG_BUS_CLK_REG,
+	.clken_bit	= (0x1 << 30),
 };
 
 static struct clk clk_sdiom1 = {
@@ -561,9 +559,19 @@ static struct clk clk_sdiom1 = {
 	.enable = p4a_set_clken_and_softreset,
 	.disable = p4a_clear_clken_and_softreset,
 	.clken_reg = GBL_CFG_BUS_CLK_REG, 
-	.clken_bit	= (0x3 << 29),
+	.clken_bit	= (0x1 << 29),
 	.modrst_reg	= GBL_CFG_SOFTRST_REG,
 	.modrst_bit = (0x1 << 8),
+};
+
+static struct clk clk_sdiom2_hclk = {
+	.name	= "sdiom2_hclk",
+	.parent	= &clk_hclk_div_clk_1,
+	.calcrate	= p4a_followparent_calcrate,
+	.enable = p4a_set_clken_and_softreset,
+	.disable = p4a_clear_clken_and_softreset,
+	.clken_reg = GBL_CFG_PERI2_CLK_REG,
+	.clken_bit	= (0x1 << 6),
 };
 
 static struct clk clk_sdiom2 = {
@@ -573,7 +581,7 @@ static struct clk clk_sdiom2 = {
 	.enable = p4a_set_clken_and_softreset,
 	.disable = p4a_clear_clken_and_softreset,
 	.clken_reg = GBL_CFG_PERI2_CLK_REG, 
-	.clken_bit	= (0x3 << 5),
+	.clken_bit	= (0x1 << 5),
 	.modrst_reg	= GBL_ARM_RST_REG,
 	.modrst_bit = (0x1 << 19),
 };
@@ -748,8 +756,10 @@ static struct clk_lookup p4a_clks[] = {
 	INIT_CLKREG(&clk_spim2_hclk, "p4a-spi.1","SPI_HCLK"),
 	INIT_CLKREG(&clk_eth_hclk, "p4a-ether", NULL),
 	INIT_CLKREG(&clk_nand, "p4a-nand", NULL),
-	INIT_CLKREG(&clk_sdiom1, "p4a-sdhci.0", NULL),
-	INIT_CLKREG(&clk_sdiom2, "p4a-sdhci.1", NULL),
+	INIT_CLKREG(&clk_sdiom1, "p4a-sdhci.0", "SD_CLK"),
+	INIT_CLKREG(&clk_sdiom1_hclk, "p4a-sdhci.0", "SD_HCLK"),
+	INIT_CLKREG(&clk_sdiom2, "p4a-sdhci.1", "SD_CLK"),
+	INIT_CLKREG(&clk_sdiom2_hclk, "p4a-sdhci.1", "SD_HCLK"),
 	INIT_CLKREG(&clk_usb_hclk, "musb_hdrc.0", "USB_CLK"),
 	INIT_CLKREG(&clk_usbphy_clk, "musb_hdrc.0", "USB_PHY_CLK"),
 	INIT_CLKREG(&clk_usb2_hclk, "musb_hdrc.1", "USB_CLK"),
