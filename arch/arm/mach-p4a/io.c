@@ -83,19 +83,17 @@ void __init p4a_map_io(void)
     /* Map peripherals */
     iotable_init(p4a_io_desc, ARRAY_SIZE(p4a_io_desc));
 
-#ifdef CONFIG_P4A_MAILBOX
 	if (p4a_cpu1mem_size != 0) {
 		p4a_cpu1mem_io_desc[0].pfn = __phys_to_pfn(p4a_cpu1mem_phys);
 		p4a_cpu1mem_io_desc[0].length = p4a_cpu1mem_size;
+
+		iotable_init(p4a_cpu1mem_io_desc, ARRAY_SIZE(p4a_cpu1mem_io_desc));
+
+		printk(KERN_INFO "CPU1MEM: Mapped pa 0x%08lx to va 0x%08lx size: 0x%lx\n",
+					__pfn_to_phys(p4a_cpu1mem_io_desc[0].pfn),
+					p4a_cpu1mem_io_desc[0].virtual,
+					p4a_cpu1mem_io_desc[0].length);
 	}
-
-	iotable_init(p4a_cpu1mem_io_desc, ARRAY_SIZE(p4a_cpu1mem_io_desc));
-
-	printk(KERN_INFO "CPU1MEM: Mapped pa 0x%08lx to va 0x%08lx size: 0x%lx\n",
-				__pfn_to_phys(p4a_cpu1mem_io_desc[0].pfn),
-				p4a_cpu1mem_io_desc[0].virtual,
-				p4a_cpu1mem_io_desc[0].length);
-#endif
 }
 
 unsigned long p4a_cpu1_mem_v2p(void *address)
