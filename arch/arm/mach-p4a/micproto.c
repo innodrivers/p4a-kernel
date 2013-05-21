@@ -56,8 +56,8 @@
 static struct p4a_mbox *mbox;
 static int micproto_ready;
 
-static phys_addr_t mreserved_memphys = MICPROTO_UNCACHED_MEM_PHYS;
-static size_t	mreserved_memsize = MICPROTO_UNCACHED_MEM_SIZE;
+static phys_addr_t mreserved_memphys = CONFIG_MICPROTO_UNCACHED_MEM_PHYS;
+static size_t	mreserved_memsize = CONFIG_MICPROTO_UNCACHED_MEM_SIZE;
 static void __iomem* mreserved_membase;
 
 /*
@@ -69,7 +69,7 @@ static int __init early_p4a_mreserved_mem(char *p)
 	unsigned long size, start;
 	char *endp;
 
-	start = MICPROTO_UNCACHED_MEM_PHYS;
+	start = CONFIG_MICPROTO_UNCACHED_MEM_PHYS;
 
 	size = memparse(p, &endp);
 	if (*endp == '@')
@@ -816,7 +816,7 @@ static int micproto_mreqb_buffer_init(void)
 	int ret;
 
 	if (mreserved_memphys == 0) {
-		printk(KERN_ERROR "mailbox reserved memory region not specified!\n");
+		printk(KERN_ERR "mailbox reserved memory region not specified!\n");
 		return -ENOMEM;
 	}
 
