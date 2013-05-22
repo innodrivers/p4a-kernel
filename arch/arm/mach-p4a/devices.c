@@ -138,14 +138,24 @@ static struct wdt_p4a_platform_data p4a_wdt_plat_data = {
 	.membase	= P4A_WDT_BASE,
 };
 
-static struct platform_device p4a_device_wdt = {
-	.name	= "p4a-wdt",
-	.id		= -1,
+static struct resource p4a_wdt_resources[] = {
+	{
+		.start	= IRQ_WDT,
+		.end	= IRQ_WDT,
+		.flags	= IORESOURCE_IRQ,
+	},
+};
+
+
+
+static struct platform_device p4a_device_wdt[] = {
+	DEVICE_BUILD_HELPER("p4a-wdt", -1, p4a_wdt_resources, &p4a_wdt_plat_data),	
 };
 
 static int __init p4a_add_device_wdt(void)
 {
-	return p4a_register_device(&p4a_device_wdt, &p4a_wdt_plat_data);
+	return platform_device_register(&p4a_device_wdt[0]);
+
 }
 #else
 static int __init p4a_add_device_wdt(void) {return 0;}

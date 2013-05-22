@@ -14,7 +14,6 @@
  *      14-Apr-2013 lichangjun <lichangjun@innofidei.com>
  *
  */
-
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/moduleparam.h>
@@ -66,6 +65,7 @@ static int wdt_p4a_start(struct watchdog_device *wdd)
 	wdt_p4ap = container_of(wdd, struct wdt_p4a, wdt_dev);
 
 	clk_enable(wdt_p4ap->clk);
+	clk_rate =  clk_get_rate(wdt_p4ap->clk);
 
 	spin_lock_irqsave(&spinlock, flags);
 
@@ -73,9 +73,8 @@ static int wdt_p4a_start(struct watchdog_device *wdd)
 	reg_value &= ~WDTCR_ENABLE;    /* disable watchdog  */
 	reg_value |= WDTCR_COUNT_CLEAR;/* clear watchdog counter */
 	reg_value |= WDTCR_RESET_CHIP_EN;/* enable watchdog reset chip */
-	__raw_writel(reg_value, WDTCR + wdt_p4ap->base);
 
-	clk_rate =  clk_get_rate(wdt_p4ap->clk);
+	__raw_writel(reg_value, WDTCR + wdt_p4ap->base);
 
 	if (wdd->timeout > wdd->max_timeout) {
 		dev_info(wdt_p4ap->dev, "timeout %d greater than max_timeout%d", wdd->timeout, wdd->max_timeout);
@@ -83,7 +82,7 @@ static int wdt_p4a_start(struct watchdog_device *wdd)
 	}
 
 	/* set watch dog timeout */
-	__raw_writel(wdd->timeout * clk_rate, WDTCNTR);
+	__raw_writel(wdd->timeout * clk_rate, WDTMR + wdt_p4ap->base);
 
 	/* enable watchdog  */
 	reg_value = __raw_readl(WDTCR + wdt_p4ap->base);
@@ -175,7 +174,7 @@ static int wdt_p4a_set_timeout(struct watchdog_device *wdd, unsigned int t)
 	__raw_writel(reg_value, WDTCR + wdt_p4ap->base);
 
 	/* set watch dog timeout */
-	__raw_writel(wdd->timeout * clk_rate, WDTCNTR + wdt_p4ap->base);
+	__raw_writel(wdd->timeout * clk_rate, WDTMR + wdt_p4ap->base);
 
 	/* enable watchdog  */
 	reg_value = __raw_readl(WDTCR + wdt_p4ap->base);
@@ -253,8 +252,10 @@ static int __devinit wdt_p4a_probe(struct platform_device *pdev)
 	p4a->wdt_dev.bootstatus =  WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
 	p4a->wdt_dev.timeout = DEFAULT_TIMEOUT,
 	p4a->wdt_dev.min_timeout = MIN_TIMEOUT,
-
+	p4a->clk = clk;
+	clk_enable(clk);
 	clk_rate =  clk_get_rate(clk);
+	clk_disable(clk);
 	p4a->wdt_dev.max_timeout = UINT_MAX / clk_rate;
 
 	rc = watchdog_dev_register(&p4a->wdt_dev);
@@ -284,6 +285,7 @@ static int __devexit wdt_p4a_remove(struct platform_device *pdev)
 	wdt_p4a_stop(&p4a->wdt_dev);
 
 	rc = watchdog_dev_unregister(&p4a->wdt_dev);
+	clk_put(p4a->clk);
 
 	kfree(p4a);
 
