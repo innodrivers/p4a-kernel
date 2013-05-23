@@ -748,23 +748,27 @@ static struct clk clk_i2c2 = {
 };
 
 static struct clk clk_timer = {
-	.name	= "timer1and2",
-	.parent	= &clk_peri_ref,
-	.enable	= p4a_set_clken_and_softreset,
-	.disable = p4a_clear_clken_and_softreset,
+	.name		= "timer",
+	.parent		= &clk_peri_ref,
+
+	.enable		= p4a_set_clken_and_softreset,
+	.disable	= p4a_clear_clken_and_softreset,
 	.clken_reg	= GBL_CFG_PERI_CLK_REG,
 	.clken_bit	= (0x1 << 15),
-	.clkdiv	= &timer_clkdiv,
+
+	.clkdiv		= &timer_clkdiv,
 	.calcrate	= p4a_clkdiv_calcrate,
 };
 
+static struct clk clk_peri_timer = {
+	.name		= "peri_timer_clk",
+	.parent		= &clk_timer,
+	.calcrate	= p4a_followparent_calcrate,
+};
+
 static struct clk clk_p4timer = {
-	.name	= "p4timer_clk",
-#ifdef CONFIG_P4A_CPU2
-	.parent	= &clk_arm2_hclk,
-#elif defined(CONFIG_P4A_CPU1)
-	.parent	= &clk_arm_hclk,
-#endif
+	.name		= "p4timer_clk",
+	.parent		= &clk_timer,
 	.calcrate	= p4a_followparent_calcrate,
 };
 
@@ -797,8 +801,8 @@ static struct clk clk_nand = {
 };
 
 static struct clk_lookup p4a_clks[] = {
-	INIT_CLKREG(&clk_timer, NULL, "TIMER_CLK"),
-	INIT_CLKREG(&clk_p4timer, NULL, "P4TIMER_CLK"),
+	INIT_CLKREG(&clk_peri_timer, NULL, "TIMER_CLK"),		/* the timer 1 & 2 in peripheral registers */
+	INIT_CLKREG(&clk_p4timer, NULL, "P4TIMER_CLK"),		/* A8 Timer */
 	INIT_CLKREG(&clk_wdt, "p4a-wdt", "WDT_CLK"),
 	INIT_CLKREG(&clk_uart1, "p4a-uart.0", NULL),
 	INIT_CLKREG(&clk_uart2, "p4a-uart.1", NULL),
