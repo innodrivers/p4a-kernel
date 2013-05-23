@@ -297,100 +297,111 @@ static const struct clksel sdiom_source_clksel[] = {
 	{.parent = NULL},
 };
 
+/* Notes :
+ * xxxCLK_DIVCOEF in P4A document, the highest bit use to change dividor to valid by invert its value,
+ * so actually dividor value should omit its highest bit.
+ *
+ * For Example, the AXI_REFCLK_DIVCOEF field in PMU_CLKRST2_REG:
+ *      Field Name	                 Field         Description
+ *      AXI_REFCLK_DIVCOEF           19-15         Axi_ref_clk dividor coef
+ *
+ * read Axi_ref_clk dividor should be (bit[18:15] + 1), just omit bit19 here.
+ *
+ */
 static const struct clkdiv axi_ref_clkdiv = {
 	.clkdiv_reg	= PMU_CLKRST2_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 15,
 };
 
 static const struct clkdiv peri_ref_clkdiv = {
 	.clkdiv_reg	= PMU_CLKRST2_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 25,
 };
 
 static const struct clkdiv sdiom_ref_clkdiv = {
 	.clkdiv_reg	= PMU_CLKRST4_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 17,
 };
 
 static const struct clkdiv arm_ref_clkdiv = {
 	.clkdiv_reg	= PMU_CLKRST2_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 5,
 };
 
 static const struct clkdiv arm2_ref_clkdiv = {
 	.clkdiv_reg	= PMU_CLKRST5_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 0,
 };
 
 static const struct clkdiv arm_axi_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_ARM_CLK_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 4,
 };
 
 static const struct clkdiv arm_hclk_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_ARM_CLK_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 12,
 };
 
 static const struct clkdiv arm2_axi_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_ARM2_CLK_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 8,
 };
 
 static const struct clkdiv arm2_hclk_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_ARM2_CLK_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 16,
 };
 
 static const struct clkdiv hclk_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_BUS_CLK_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 0,
 
 };
 
 static const struct clkdiv sdiom1_clk_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_BUS_CLK_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 24,
 };
 
 static const struct clkdiv sdiom2_clk_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_PERI2_CLK_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 0,
 };
 
 static const struct clkdiv dma_aclk_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_PERI_CLK_REG, 
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 24,
 };
 
 static const struct clkdiv spim_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_PERI_CLK_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 16,
 };
 
 static const struct clkdiv spim2_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_PERI2_CLK_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 8,
 };
 
 static const struct clkdiv timer_clkdiv = {
 	.clkdiv_reg	= GBL_CFG_PERI_CLK_REG,
-	.mask	= 0x1f,
+	.mask	= 0x0f,
 	.shift	= 8,
 };
 
