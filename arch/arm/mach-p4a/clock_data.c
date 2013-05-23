@@ -291,6 +291,12 @@ static const struct clksel peri_source_clksel[] = {
 	{.parent = NULL},
 };
 
+static const struct clksel sdiom_source_clksel[] = {
+	{.parent = &clk_pll1, .val = 0x0},
+	{.parent = &clk_pll2, .val = 0x1},
+	{.parent = NULL},
+};
+
 static const struct clkdiv axi_ref_clkdiv = {
 	.clkdiv_reg	= PMU_CLKRST2_REG,
 	.mask	= 0x1f,
@@ -301,6 +307,12 @@ static const struct clkdiv peri_ref_clkdiv = {
 	.clkdiv_reg	= PMU_CLKRST2_REG,
 	.mask	= 0x1f,
 	.shift	= 25,
+};
+
+static const struct clkdiv sdiom_ref_clkdiv = {
+	.clkdiv_reg	= PMU_CLKRST4_REG,
+	.mask	= 0x1f,
+	.shift	= 17,
 };
 
 static const struct clkdiv arm_ref_clkdiv = {
@@ -344,6 +356,18 @@ static const struct clkdiv hclk_clkdiv = {
 	.mask	= 0x1f,
 	.shift	= 0,
 
+};
+
+static const struct clkdiv sdiom1_clk_clkdiv = {
+	.clkdiv_reg	= GBL_CFG_BUS_CLK_REG,
+	.mask	= 0x1f,
+	.shift	= 24,
+};
+
+static const struct clkdiv sdiom2_clk_clkdiv = {
+	.clkdiv_reg	= GBL_CFG_PERI2_CLK_REG,
+	.mask	= 0x1f,
+	.shift	= 0,
 };
 
 static const struct clkdiv dma_aclk_clkdiv = {
@@ -458,11 +482,23 @@ static struct clk clk_axi_ref = {
 
 /* SDIOM_REF Clock */
 static struct clk clk_sdiom_ref = {
-	.name	= "sdiom_ref_clk",
-	.enable	= p4a_set_clken_and_softreset,
-	.disable = p4a_clear_clken_and_softreset,
-	.clken_reg	= PMU_CLKRST1_REG,
-	.clken_bit	= (0x1 << 18),
+	.name	= "SDIOM_REF",
+
+	/* clock selector */
+	.clksel_reg		= PMU_CLKRST4_REG,
+	.clksel_mask	= (0x3 << 15),		//bit16:15
+	.clksel			= sdiom_source_clksel,
+
+	/* clock gating */
+	.enable			= p4a_set_clken_and_softreset,
+	.disable		= p4a_clear_clken_and_softreset,
+	.clken_reg		= PMU_CLKRST1_REG,
+	.clken_bit		= (0x1 << 18),
+
+	/* clock dividor */
+	.clkdiv			= &sdiom_ref_clkdiv,
+
+	.calcrate		= p4a_clkdiv_calcrate,
 };
 
 #if 0
@@ -543,44 +579,53 @@ static struct clk clk_usb2_hclk = {		/* UTMI USB */
 };
 
 static struct clk clk_sdiom1_hclk = {
-	.name	= "sdiom1_hclk",
-	.parent	= &clk_hclk_div_clk_1,
+	.name		= "sdiom1_hclk",
+	.parent		= &clk_hclk_div_clk_1,
+
 	.calcrate	= p4a_followparent_calcrate,
-	.enable = p4a_set_clken_and_softreset,
-	.disable = p4a_clear_clken_and_softreset,
-	.clken_reg = GBL_CFG_BUS_CLK_REG,
+
+	.enable		= p4a_set_clken_and_softreset,
+	.disable	= p4a_clear_clken_and_softreset,
+	.clken_reg	= GBL_CFG_BUS_CLK_REG,
 	.clken_bit	= (0x1 << 30),
 };
 
 static struct clk clk_sdiom1 = {
-	.name	= "sdiom1_clk",
-	.parent	= &clk_sdiom_ref,
-	.calcrate	= p4a_followparent_calcrate,
-	.enable = p4a_set_clken_and_softreset,
-	.disable = p4a_clear_clken_and_softreset,
-	.clken_reg = GBL_CFG_BUS_CLK_REG, 
+	.name		= "sdiom1_clk",
+	.parent		= &clk_sdiom_ref,
+
+	.clkdiv		= &sdiom1_clk_clkdiv,
+	.calcrate	= p4a_clkdiv_calcrate,
+
+	.enable		= p4a_set_clken_and_softreset,
+	.disable	= p4a_clear_clken_and_softreset,
+	.clken_reg	= GBL_CFG_BUS_CLK_REG,
 	.clken_bit	= (0x1 << 29),
 	.modrst_reg	= GBL_CFG_SOFTRST_REG,
-	.modrst_bit = (0x1 << 8),
+	.modrst_bit	= (0x1 << 8),
 };
 
 static struct clk clk_sdiom2_hclk = {
-	.name	= "sdiom2_hclk",
-	.parent	= &clk_hclk_div_clk_1,
+	.name		= "sdiom2_hclk",
+	.parent		= &clk_hclk_div_clk_1,
 	.calcrate	= p4a_followparent_calcrate,
-	.enable = p4a_set_clken_and_softreset,
-	.disable = p4a_clear_clken_and_softreset,
-	.clken_reg = GBL_CFG_PERI2_CLK_REG,
+
+	.enable		= p4a_set_clken_and_softreset,
+	.disable	= p4a_clear_clken_and_softreset,
+	.clken_reg	= GBL_CFG_PERI2_CLK_REG,
 	.clken_bit	= (0x1 << 6),
 };
 
 static struct clk clk_sdiom2 = {
-	.name	= "sdiom2_clk",
-	.parent	= &clk_sdiom_ref,
-	.calcrate	= p4a_followparent_calcrate,
-	.enable = p4a_set_clken_and_softreset,
-	.disable = p4a_clear_clken_and_softreset,
-	.clken_reg = GBL_CFG_PERI2_CLK_REG, 
+	.name		= "sdiom2_clk",
+	.parent		= &clk_sdiom_ref,
+
+	.clkdiv		= &sdiom2_clk_clkdiv,
+	.calcrate	= p4a_clkdiv_calcrate,
+
+	.enable		= p4a_set_clken_and_softreset,
+	.disable	= p4a_clear_clken_and_softreset,
+	.clken_reg	= GBL_CFG_PERI2_CLK_REG,
 	.clken_bit	= (0x1 << 5),
 	.modrst_reg	= GBL_ARM_RST_REG,
 	.modrst_bit = (0x1 << 19),

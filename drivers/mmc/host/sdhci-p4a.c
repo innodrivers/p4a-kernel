@@ -35,7 +35,7 @@ static unsigned int sdhci_p4a_get_max_clk(struct sdhci_host *host)
 	struct sdhci_p4a_host *p4a = sdhci_priv(host);
 	unsigned int rate;
 
-	rate = clk_get_rate(p4a->hclk);
+	rate = clk_get_rate(p4a->clk);
 
 	return rate;
 }
