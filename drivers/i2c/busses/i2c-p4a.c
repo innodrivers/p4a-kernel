@@ -260,6 +260,8 @@ static int p4a_i2c_reset(struct p4a_i2c *i2c_adap, int genstop)
 static void p4a_i2c_disable(struct p4a_i2c *i2c_adap)
 {
 	p4a_i2c_write_reg(i2c_adap, IIC_CTRL, 0); //disable i2c controller.
+
+	clk_disable(i2c_adap->clk);
 }
 
 /*
@@ -373,6 +375,7 @@ static const struct i2c_algorithm p4a_i2c_algorithm = {
  */
 static int p4a_i2c_init(struct p4a_i2c *i2c_adap)
 {
+	clk_enable(i2c_adap->clk);
 
 	/*reset i2c and enable it*/
 	p4a_i2c_write_reg(i2c_adap, IIC_CTRL, IICCTRL_RESET);
