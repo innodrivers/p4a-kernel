@@ -327,10 +327,11 @@ static void p4a_mbox_shutdown(struct p4a_mbox *mbox)
 int p4a_mbox_msg_send(struct p4a_mbox *mbox, mbox_msg_t msg)
 {
 	struct p4a_mbox_queue *mq = mbox->txq;
+	unsigned long flags;
 	int ret = 0;
 	int len;
 
-	spin_lock(&mq->lock);
+	spin_lock_irqsave(&mq->lock, flags);
 
 	/*
 	 * kernel FIFO full, return a fail
@@ -358,7 +359,7 @@ int p4a_mbox_msg_send(struct p4a_mbox *mbox, mbox_msg_t msg)
 	tasklet_schedule(&mq->tasklet);
 
 out:
-	spin_unlock(&mq->lock);
+	spin_unlock_irqrestore(&mq->lock, flags);
 
 	return ret;
 }
