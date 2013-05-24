@@ -32,7 +32,7 @@ static struct map_desc p4a_cpu1mem_io_desc[] __initdata = {
         .virtual    = (unsigned long)P4A_CPU1MEM_BASE,
         .pfn        = __phys_to_pfn(P4A_CPU1MEM_PHYS),
         .length     = SZ_64M,
-        .type       = MT_MEMORY,
+        .type       = MT_MEMORY_NONCACHED,
 	},
 };
 

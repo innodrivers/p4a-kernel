@@ -494,7 +494,7 @@ static int do_mbether_request(struct mreqb *reqb, void *priv)
 		// the physical address here is allocated and access by CPU1
 		pkt_buf = (void *)p4a_cpu1_mem_p2v(pkt_dma);
 
-		dma_sync_single_for_cpu(mp->dev, pkt_dma, pkt_sz, DMA_FROM_DEVICE);
+		//dma_sync_single_for_cpu(mp->dev, pkt_dma, pkt_sz, DMA_FROM_DEVICE);
 
 		ret = mbether_recv_ip_packet(mp, pkt_buf, pkt_sz);
 
@@ -552,6 +552,7 @@ static int __init p4a_mbether_probe(struct platform_device *pdev)
 
 	random_ether_addr(macaddr);
 	memcpy(ndev->dev_addr, macaddr, sizeof(macaddr));
+	ndev->flags |= IFF_NOARP;
 
 	ret = register_netdev(ndev);
 
