@@ -553,6 +553,7 @@ static int __init p4a_mbether_probe(struct platform_device *pdev)
 	random_ether_addr(macaddr);
 	memcpy(ndev->dev_addr, macaddr, sizeof(macaddr));
 	ndev->flags |= IFF_NOARP;
+	strcpy(ndev->name, "mbeth%d");
 
 	ret = register_netdev(ndev);
 
