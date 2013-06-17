@@ -57,14 +57,12 @@
 
 static inline mbox_msg_t out_msg_fixup(mbox_msg_t msg)
 {
-	//return CONVER_TO_MSG(msg);
-	return msg;
+	return CONVER_TO_MSG(msg);
 }
 
 static inline mbox_msg_t in_msg_fixup(mbox_msg_t msg)
 {
-	return msg;
-	//return CONVER_TO_ADDR(msg);
+	return CONVER_TO_ADDR(msg);
 }
 
 /*-------------------------------------------------------------*/
